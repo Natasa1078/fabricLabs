@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Reflex",
+    "displayName": "Stock Example Activator Alert"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "2176ca1d-bf65-9da5-4f3a-6d230a2aa0d2"
+  }
+}
