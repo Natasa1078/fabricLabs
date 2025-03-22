@@ -1,5 +1,5 @@
 CREATE TABLE [dbo].[TestTable]
 (
   [Id] INT NOT NULL PRIMARY KEY,
-  [Name] STRING 
+  [Name] NVARCHAR(50)
 )
