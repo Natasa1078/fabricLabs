@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "DataPipeline",
+    "displayName": "AdventureWorksFromStagingToDW"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "d2b5cb45-7c09-9e99-4c59-f9c34002bc59"
+  }
+}

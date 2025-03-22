@@ -1,0 +1,687 @@
+{
+  "properties": {
+    "activities": [
+      {
+        "name": "Lookup1",
+        "type": "Lookup",
+        "dependsOn": [],
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureOutput": false,
+          "secureInput": false
+        },
+        "typeProperties": {
+          "source": {
+            "type": "FabricSqlDatabaseSource",
+            "sqlReaderQuery": "select sch.name as \"Schema\",\n\t\tso.name as \"Table\"\nfrom sys.objects so left join sys.schemas sch on so.schema_id = sch.schema_id\nwhere so.type = 'U' and so.object_id not in (select distinct object_id from sys.all_columns where system_type_id in (34,35,98,99,189,240,241))",
+            "queryTimeout": "02:00:00",
+            "partitionOption": "None"
+          },
+          "firstRowOnly": false,
+          "datasetSettings": {
+            "annotations": [],
+            "connectionSettings": {
+              "name": "SalesStagingTable",
+              "properties": {
+                "annotations": [],
+                "type": "FabricSqlDatabase",
+                "typeProperties": {
+                  "workspaceId": "6aa76cf8-22f6-44a3-8c7f-3649d2bccb88",
+                  "artifactId": "6e43f6b1-290e-4c4d-ae36-13a0f59bab50"
+                },
+                "externalReferences": {
+                  "connection": "612d2eb7-524f-48b4-a3bd-edc98408ff94"
+                }
+              }
+            },
+            "type": "FabricSqlDatabaseTable",
+            "schema": [],
+            "typeProperties": {}
+          }
+        }
+      },
+      {
+        "name": "ForEach1",
+        "type": "ForEach",
+        "dependsOn": [
+          {
+            "activity": "Lookup1",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ],
+        "typeProperties": {
+          "items": {
+            "value": "@activity('Lookup1').output.value",
+            "type": "Expression"
+          },
+          "activities": [
+            {
+              "name": "Copy data1",
+              "type": "Copy",
+              "dependsOn": [],
+              "policy": {
+                "timeout": "0.12:00:00",
+                "retry": 0,
+                "retryIntervalInSeconds": 30,
+                "secureOutput": false,
+                "secureInput": false
+              },
+              "typeProperties": {
+                "source": {
+                  "type": "FabricSqlDatabaseSource",
+                  "queryTimeout": "02:00:00",
+                  "partitionOption": "None",
+                  "datasetSettings": {
+                    "annotations": [],
+                    "connectionSettings": {
+                      "name": "SalesStagingTable",
+                      "properties": {
+                        "annotations": [],
+                        "type": "FabricSqlDatabase",
+                        "typeProperties": {
+                          "workspaceId": "6aa76cf8-22f6-44a3-8c7f-3649d2bccb88",
+                          "artifactId": "6e43f6b1-290e-4c4d-ae36-13a0f59bab50"
+                        },
+                        "externalReferences": {
+                          "connection": "612d2eb7-524f-48b4-a3bd-edc98408ff94"
+                        }
+                      }
+                    },
+                    "type": "FabricSqlDatabaseTable",
+                    "schema": [],
+                    "typeProperties": {
+                      "schema": {
+                        "value": "@item().Schema",
+                        "type": "Expression"
+                      },
+                      "table": {
+                        "value": "@item().Table",
+                        "type": "Expression"
+                      }
+                    }
+                  }
+                },
+                "sink": {
+                  "type": "DataWarehouseSink",
+                  "allowCopyCommand": true,
+                  "copyCommandSettings": {},
+                  "tableOption": "autoCreate",
+                  "datasetSettings": {
+                    "annotations": [],
+                    "linkedService": {
+                      "name": "SalesDW",
+                      "properties": {
+                        "annotations": [],
+                        "type": "DataWarehouse",
+                        "typeProperties": {
+                          "endpoint": "ag2nsoalpudehdej7szmh2k4fm-7bwko2xwekrujdd7gze5fpglra.datawarehouse.fabric.microsoft.com",
+                          "artifactId": "c8d3e3b4-7603-4070-a160-2ad876931df1",
+                          "workspaceId": "6aa76cf8-22f6-44a3-8c7f-3649d2bccb88"
+                        }
+                      }
+                    },
+                    "type": "DataWarehouseTable",
+                    "schema": [],
+                    "typeProperties": {
+                      "schema": "SalesLT",
+                      "table": {
+                        "value": "@item().Table",
+                        "type": "Expression"
+                      }
+                    }
+                  }
+                },
+                "enableStaging": true,
+                "translator": {
+                  "type": "TabularTranslator",
+                  "typeConversion": true,
+                  "typeConversionSettings": {
+                    "allowDataTruncation": true,
+                    "treatBooleanAsNumber": false
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "parameters": {
+      "cw_items_or2": {
+        "type": "Array",
+        "defaultValue": [
+          {
+            "source": {
+              "schema": "Production",
+              "table": "Product"
+            },
+            "destination": {
+              "table": "Product"
+            },
+            "copyActivity": {
+              "translator": {
+                "type": "TabularTranslator",
+                "mappings": [
+                  {
+                    "source": {
+                      "name": "ProductID",
+                      "type": "Int32",
+                      "physicalType": "int"
+                    },
+                    "sink": {
+                      "name": "ProductID",
+                      "physicalType": "int"
+                    }
+                  },
+                  {
+                    "source": {
+                      "name": "Name",
+                      "type": "String",
+                      "physicalType": "nvarchar",
+                      "length": "50"
+                    },
+                    "sink": {
+                      "name": "Name",
+                      "physicalType": "nvarchar",
+                      "length": "50"
+                    }
+                  },
+                  {
+                    "source": {
+                      "name": "ProductNumber",
+                      "type": "String",
+                      "physicalType": "nvarchar",
+                      "length": "25"
+                    },
+                    "sink": {
+                      "name": "ProductNumber",
+                      "physicalType": "nvarchar",
+                      "length": "25"
+                    }
+                  },
+                  {
+                    "source": {
+                      "name": "MakeFlag",
+                      "type": "Boolean",
+                      "physicalType": "bit"
+                    },
+                    "sink": {
+                      "name": "MakeFlag",
+                      "physicalType": "bit"
+                    }
+                  },
+                  {
+                    "source": {
+                      "name": "FinishedGoodsFlag",
+                      "type": "Boolean",
+                      "physicalType": "bit"
+                    },
+                    "sink": {
+                      "name": "FinishedGoodsFlag",
+                      "physicalType": "bit"
+                    }
+                  },
+                  {
+                    "source": {
+                      "name": "Color",
+                      "type": "String",
+                      "physicalType": "nvarchar",
+                      "length": "15"
+                    },
+                    "sink": {
+                      "name": "Color",
+                      "physicalType": "nvarchar",
+                      "length": "15"
+                    }
+                  },
+                  {
+                    "source": {
+                      "name": "SafetyStockLevel",
+                      "type": "Int16",
+                      "physicalType": "smallint"
+                    },
+                    "sink": {
+                      "name": "SafetyStockLevel",
+                      "physicalType": "smallint"
+                    }
+                  },
+                  {
+                    "source": {
+                      "name": "ReorderPoint",
+                      "type": "Int16",
+                      "physicalType": "smallint"
+                    },
+                    "sink": {
+                      "name": "ReorderPoint",
+                      "physicalType": "smallint"
+                    }
+                  },
+                  {
+                    "source": {
+                      "name": "StandardCost",
+                      "type": "Decimal",
+                      "physicalType": "money",
+                      "scale": 4,
+                      "precision": 19
+                    },
+                    "sink": {
+                      "name": "StandardCost",
+                      "physicalType": "money"
+                    }
+                  },
+                  {
+                    "source": {
+                      "name": "ListPrice",
+                      "type": "Decimal",
+                      "physicalType": "money",
+                      "scale": 4,
+                      "precision": 19
+                    },
+                    "sink": {
+                      "name": "ListPrice",
+                      "physicalType": "money"
+                    }
+                  },
+                  {
+                    "source": {
+                      "name": "Size",
+                      "type": "String",
+                      "physicalType": "nvarchar",
+                      "length": "5"
+                    },
+                    "sink": {
+                      "name": "Size",
+                      "physicalType": "nvarchar",
+                      "length": "5"
+                    }
+                  },
+                  {
+                    "source": {
+                      "name": "SizeUnitMeasureCode",
+                      "type": "String",
+                      "physicalType": "nchar",
+                      "length": "3"
+                    },
+                    "sink": {
+                      "name": "SizeUnitMeasureCode",
+                      "physicalType": "nchar",
+                      "length": "3"
+                    }
+                  },
+                  {
+                    "source": {
+                      "name": "WeightUnitMeasureCode",
+                      "type": "String",
+                      "physicalType": "nchar",
+                      "length": "3"
+                    },
+                    "sink": {
+                      "name": "WeightUnitMeasureCode",
+                      "physicalType": "nchar",
+                      "length": "3"
+                    }
+                  },
+                  {
+                    "source": {
+                      "name": "Weight",
+                      "type": "Decimal",
+                      "physicalType": "decimal",
+                      "scale": 2,
+                      "precision": 8
+                    },
+                    "sink": {
+                      "name": "Weight",
+                      "physicalType": "decimal",
+                      "scale": 2,
+                      "precision": 8
+                    }
+                  },
+                  {
+                    "source": {
+                      "name": "DaysToManufacture",
+                      "type": "Int32",
+                      "physicalType": "int"
+                    },
+                    "sink": {
+                      "name": "DaysToManufacture",
+                      "physicalType": "int"
+                    }
+                  },
+                  {
+                    "source": {
+                      "name": "ProductLine",
+                      "type": "String",
+                      "physicalType": "nchar",
+                      "length": "2"
+                    },
+                    "sink": {
+                      "name": "ProductLine",
+                      "physicalType": "nchar",
+                      "length": "2"
+                    }
+                  },
+                  {
+                    "source": {
+                      "name": "Class",
+                      "type": "String",
+                      "physicalType": "nchar",
+                      "length": "2"
+                    },
+                    "sink": {
+                      "name": "Class",
+                      "physicalType": "nchar",
+                      "length": "2"
+                    }
+                  },
+                  {
+                    "source": {
+                      "name": "Style",
+                      "type": "String",
+                      "physicalType": "nchar",
+                      "length": "2"
+                    },
+                    "sink": {
+                      "name": "Style",
+                      "physicalType": "nchar",
+                      "length": "2"
+                    }
+                  },
+                  {
+                    "source": {
+                      "name": "ProductSubcategoryID",
+                      "type": "Int32",
+                      "physicalType": "int"
+                    },
+                    "sink": {
+                      "name": "ProductSubcategoryID",
+                      "physicalType": "int"
+                    }
+                  },
+                  {
+                    "source": {
+                      "name": "ProductModelID",
+                      "type": "Int32",
+                      "physicalType": "int"
+                    },
+                    "sink": {
+                      "name": "ProductModelID",
+                      "physicalType": "int"
+                    }
+                  },
+                  {
+                    "source": {
+                      "name": "SellStartDate",
+                      "type": "DateTime",
+                      "physicalType": "datetime"
+                    },
+                    "sink": {
+                      "name": "SellStartDate",
+                      "physicalType": "datetime"
+                    }
+                  },
+                  {
+                    "source": {
+                      "name": "SellEndDate",
+                      "type": "DateTime",
+                      "physicalType": "datetime"
+                    },
+                    "sink": {
+                      "name": "SellEndDate",
+                      "physicalType": "datetime"
+                    }
+                  },
+                  {
+                    "source": {
+                      "name": "DiscontinuedDate",
+                      "type": "DateTime",
+                      "physicalType": "datetime"
+                    },
+                    "sink": {
+                      "name": "DiscontinuedDate",
+                      "physicalType": "datetime"
+                    }
+                  },
+                  {
+                    "source": {
+                      "name": "rowguid",
+                      "type": "Guid",
+                      "physicalType": "uniqueidentifier"
+                    },
+                    "sink": {
+                      "name": "rowguid",
+                      "physicalType": "uniqueidentifier"
+                    }
+                  },
+                  {
+                    "source": {
+                      "name": "ModifiedDate",
+                      "type": "DateTime",
+                      "physicalType": "datetime"
+                    },
+                    "sink": {
+                      "name": "ModifiedDate",
+                      "physicalType": "datetime"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "source": {
+              "schema": "Production",
+              "table": "ProductCategory"
+            },
+            "destination": {
+              "table": "ProductCategory"
+            },
+            "copyActivity": {
+              "translator": {
+                "type": "TabularTranslator",
+                "mappings": [
+                  {
+                    "source": {
+                      "name": "ProductCategoryID",
+                      "type": "Int32",
+                      "physicalType": "int"
+                    },
+                    "sink": {
+                      "name": "ProductCategoryID",
+                      "physicalType": "int"
+                    }
+                  },
+                  {
+                    "source": {
+                      "name": "Name",
+                      "type": "String",
+                      "physicalType": "nvarchar",
+                      "length": "50"
+                    },
+                    "sink": {
+                      "name": "Name",
+                      "physicalType": "nvarchar",
+                      "length": "50"
+                    }
+                  },
+                  {
+                    "source": {
+                      "name": "rowguid",
+                      "type": "Guid",
+                      "physicalType": "uniqueidentifier"
+                    },
+                    "sink": {
+                      "name": "rowguid",
+                      "physicalType": "uniqueidentifier"
+                    }
+                  },
+                  {
+                    "source": {
+                      "name": "ModifiedDate",
+                      "type": "DateTime",
+                      "physicalType": "datetime"
+                    },
+                    "sink": {
+                      "name": "ModifiedDate",
+                      "physicalType": "datetime"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "source": {
+              "schema": "Sales",
+              "table": "SalesOrderDetail"
+            },
+            "destination": {
+              "table": "SalesOrderDetail"
+            },
+            "copyActivity": {
+              "translator": {
+                "type": "TabularTranslator",
+                "mappings": [
+                  {
+                    "source": {
+                      "name": "SalesOrderID",
+                      "type": "Int32",
+                      "physicalType": "int"
+                    },
+                    "sink": {
+                      "name": "SalesOrderID",
+                      "physicalType": "int"
+                    }
+                  },
+                  {
+                    "source": {
+                      "name": "SalesOrderDetailID",
+                      "type": "Int32",
+                      "physicalType": "int"
+                    },
+                    "sink": {
+                      "name": "SalesOrderDetailID",
+                      "physicalType": "int"
+                    }
+                  },
+                  {
+                    "source": {
+                      "name": "CarrierTrackingNumber",
+                      "type": "String",
+                      "physicalType": "nvarchar",
+                      "length": "25"
+                    },
+                    "sink": {
+                      "name": "CarrierTrackingNumber",
+                      "physicalType": "nvarchar",
+                      "length": "25"
+                    }
+                  },
+                  {
+                    "source": {
+                      "name": "OrderQty",
+                      "type": "Int16",
+                      "physicalType": "smallint"
+                    },
+                    "sink": {
+                      "name": "OrderQty",
+                      "physicalType": "smallint"
+                    }
+                  },
+                  {
+                    "source": {
+                      "name": "ProductID",
+                      "type": "Int32",
+                      "physicalType": "int"
+                    },
+                    "sink": {
+                      "name": "ProductID",
+                      "physicalType": "int"
+                    }
+                  },
+                  {
+                    "source": {
+                      "name": "SpecialOfferID",
+                      "type": "Int32",
+                      "physicalType": "int"
+                    },
+                    "sink": {
+                      "name": "SpecialOfferID",
+                      "physicalType": "int"
+                    }
+                  },
+                  {
+                    "source": {
+                      "name": "UnitPrice",
+                      "type": "Decimal",
+                      "physicalType": "money",
+                      "scale": 4,
+                      "precision": 19
+                    },
+                    "sink": {
+                      "name": "UnitPrice",
+                      "physicalType": "money"
+                    }
+                  },
+                  {
+                    "source": {
+                      "name": "UnitPriceDiscount",
+                      "type": "Decimal",
+                      "physicalType": "money",
+                      "scale": 4,
+                      "precision": 19
+                    },
+                    "sink": {
+                      "name": "UnitPriceDiscount",
+                      "physicalType": "money"
+                    }
+                  },
+                  {
+                    "source": {
+                      "name": "LineTotal",
+                      "type": "Decimal",
+                      "physicalType": "decimal",
+                      "scale": 6,
+                      "precision": 38
+                    },
+                    "sink": {
+                      "name": "LineTotal",
+                      "physicalType": "decimal",
+                      "scale": 6,
+                      "precision": 38
+                    }
+                  },
+                  {
+                    "source": {
+                      "name": "rowguid",
+                      "type": "Guid",
+                      "physicalType": "uniqueidentifier"
+                    },
+                    "sink": {
+                      "name": "rowguid",
+                      "physicalType": "uniqueidentifier"
+                    }
+                  },
+                  {
+                    "source": {
+                      "name": "ModifiedDate",
+                      "type": "DateTime",
+                      "physicalType": "datetime"
+                    },
+                    "sink": {
+                      "name": "ModifiedDate",
+                      "physicalType": "datetime"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
